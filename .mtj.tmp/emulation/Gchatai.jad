@@ -1,10 +1,10 @@
 MIDlet-1: Gchatai,/icon.png,GchataiMIDlet
 MIDlet-Data-Size: 3600
 MIDlet-Description: Created By GZX
-MIDlet-Jar-Size: 40201
+MIDlet-Jar-Size: 50600
 MIDlet-Jar-URL: Gchatai.jar
 MIDlet-Name: Gchatai
 MIDlet-Vendor: GZX
-MIDlet-Version: 1.0
+MIDlet-Version: 2.0
 MicroEdition-Configuration: CLDC-1.1
 MicroEdition-Profile: MIDP-2.0

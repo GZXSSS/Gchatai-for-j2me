@@ -5,19 +5,20 @@ import java.io.OutputStream;
 
 import javax.microedition.io.Connector;
 import javax.microedition.io.HttpConnection;
-import javax.microedition.lcdui.Alert;
-import javax.microedition.lcdui.AlertType;
+import javax.microedition.lcdui.Display;
+import javax.microedition.lcdui.StringItem;
 
 import cc.nnproject.json.JSONArray;
 import cc.nnproject.json.JSONObject;
 
 public class GchataiFinal {
 	
-    public static String sendMessage(String	 messageString) throws Exception{
+    public static String sendMessage(String	 messageString,StringItem stringItem,Display display) throws Exception{
     	
     	String API_KEY = ConfigStorage.getConfig("API_KEY");
     	String url = ConfigStorage.getConfig("API_URL");
     	String model=ConfigStorage.getConfig("MODEL");
+    	String SYSTEM = ConfigStorage.getConfig("SYSTEM");   	
     	int max_tokens=Integer.parseInt(ConfigStorage.getConfig("MAX_TOKENS"));   	
     	 	
         JSONObject requestBody = new JSONObject();
@@ -25,10 +26,14 @@ public class GchataiFinal {
 
         // 构造 messages 数组
         JSONArray messages = new JSONArray();
-        JSONObject message = new JSONObject();
-        message.put("role", "user");
-        message.put("content", messageString);
-        messages.add(message);
+        JSONObject usermessage = new JSONObject();
+        JSONObject systemmessage = new JSONObject();
+        usermessage.put("role", "user");
+        usermessage.put("content", messageString);
+        messages.add(usermessage);
+        systemmessage.put("role", "system");
+        systemmessage.put("content", SYSTEM);
+        messages.add(systemmessage);
 
         requestBody.put("messages", messages); // 设置 messages
         requestBody.put("temperature", 0.7); // 温度参数
@@ -89,16 +94,20 @@ public class GchataiFinal {
             }
         } catch (Exception e) {
             // 异常处理
-            e.printStackTrace();
+        	final String errorMsg = "[错误] " + e.getClass().getName() + ": " + e.getMessage();
+        	final StringItem E = stringItem;
+            display.callSerially(new Runnable() {
+                public void run() {
+                    E.setText(E.getText() + errorMsg);
+                }
+            });
+            
         }finally {
             // 6. 清理资源
             if (is != null) try { is.close(); } catch (IOException e) {}
             if (os != null) try { os.close(); } catch (IOException e) {}
             if (conn != null) try { conn.close(); } catch (IOException e) {}
         }
-
-        // 处理响应
-        System.out.println("API 响应: " + response);
 
         // 解析响应 JSON
         JSONObject jsonResponse = new JSONObject(response);
@@ -112,84 +121,5 @@ public class GchataiFinal {
     	
     }
 
-    /**
-     * 处理流式数据接收
-     * @param inputStream 从服务器获取的输入流
-     * @throws IOException 当流读取出现问题时抛出
-     */
-    private void processStreamingData(InputStream inputStream) throws IOException {
-        byte[] buffer = new byte[256]; // 缓冲区大小可调整
-        StringBuffer dataBuffer = new StringBuffer();
-        int bytesRead;
-        
-        while ((bytesRead = inputStream.read(buffer)) != -1) {
-            String chunk = new String(buffer, 0, bytesRead, "UTF-8");
-            dataBuffer.append(chunk);
-            
-            // 处理完整消息
-            processCompleteMessages(dataBuffer);
-        }
-        
-        // 处理剩余数据
-        if (dataBuffer.length() > 0) {
-            handleStreamingChunk(dataBuffer.toString().trim());
-        }
-    }
-
-    /**
-     * 从缓冲区提取并处理完整消息(以换行符分隔)
-     * @param dataBuffer 包含接收数据的StringBuffer
-     */
-    private void processCompleteMessages(StringBuffer dataBuffer) {
-        int newlinePos = -1;
-        
-        // 查找换行符位置
-        for (int i = 0; i < dataBuffer.length(); i++) {
-            if (dataBuffer.charAt(i) == '\n') {
-                newlinePos = i;
-                break;
-            }
-        }
-        
-        while (newlinePos != -1) {
-            // 提取完整消息(手动实现substring功能)
-            char[] messageChars = new char[newlinePos];
-            dataBuffer.getChars(0, newlinePos, messageChars, 0);
-            String completeMessage = new String(messageChars).trim();
-            
-            // 移除已处理的数据
-            dataBuffer.delete(0, newlinePos + 1);
-            
-            // 处理非空消息
-            if (completeMessage.length() > 0) {
-                handleStreamingChunk(completeMessage);
-            }
-            
-            // 查找下一个换行符
-            newlinePos = -1;
-            for (int i = 0; i < dataBuffer.length(); i++) {
-                if (dataBuffer.charAt(i) == '\n') {
-                    newlinePos = i;
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * 处理单个数据块
-     * @param chunk 从流中接收到的完整数据块
-     */
-    private void handleStreamingChunk(String chunk) {
-        // 实现你的业务逻辑
-        System.out.println("Received chunk: " + chunk);
-        
-        // 如果是JSON数据可以这样解析:
-        // try {
-        //     JSONObject json = new JSONObject(chunk);
-        //     // 处理json数据...
-        // } catch (JSONException e) {
-        //     System.err.println("JSON解析错误: " + e.getMessage());
-        // }
-	}
 }
+
