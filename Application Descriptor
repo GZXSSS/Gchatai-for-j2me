@@ -1,9 +1,9 @@
 MIDlet-Data-Size: 3600
 MIDlet-Vendor: GZX
-MIDlet-Version: 1.0
+MIDlet-Version: 2.0
 MicroEdition-Configuration: CLDC-1.1
-MIDlet-1: Gchatai,/icon.png,GchataiMIDlet
 MIDlet-Name: Gchatai
 MIDlet-Description: Created By GZX
+MIDlet-1: Gchatai,/icon.png,GchataiMIDlet
 MicroEdition-Profile: MIDP-2.0
 MIDlet-Jar-URL: Gchatai.jar
